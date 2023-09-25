@@ -18,6 +18,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
 import { ChangeEvent, useState } from 'react';
+import { isBase64Image } from '@/lib/utils';
+import { useUploadThing } from '@/lib/uploadThing';
 
 interface AccountProfileProps {
   user: {
@@ -33,6 +35,8 @@ interface AccountProfileProps {
 
 function AccountProfile({ user, btnTitle }: AccountProfileProps) {
   const [files, setFiles] = useState<File[]>([]);
+  const { startUpload } = useUploadThing('media');
+
   const form = useForm({
     resolver: zodResolver(userValidation),
     defaultValues: {
@@ -43,6 +47,7 @@ function AccountProfile({ user, btnTitle }: AccountProfileProps) {
     },
   });
 
+  // Handle user uploading image
   const handleImage = (
     e: ChangeEvent<HTMLInputElement>,
     fieldChange: (value: string) => void
@@ -67,10 +72,20 @@ function AccountProfile({ user, btnTitle }: AccountProfileProps) {
     }
   };
 
-  function onSubmit(values: z.infer<typeof userValidation>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof userValidation>) {
+    const blob = values.profile_photo;
+
+    const hasImageChanged = isBase64Image(blob);
+
+    if (hasImageChanged) {
+      const imgRes = await startUpload(files);
+
+      if (imgRes && imgRes[0].fileUrl) {
+        values.profile_photo = imgRes[0].fileUrl;
+      }
+    }
+
+    // Update user profile
   }
 
   return (
