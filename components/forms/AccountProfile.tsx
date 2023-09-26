@@ -41,13 +41,13 @@ function AccountProfile({ user, btnTitle }: AccountProfileProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const form = useForm<z.infer<typeof userValidation>>({
+  const form = useForm({
     resolver: zodResolver(userValidation),
     defaultValues: {
-      profile_photo: user?.image ? user.image : '',
-      name: user?.name ? user.name : '',
-      username: user?.username ? user.username : '',
-      bio: user?.bio ? user.bio : '',
+      profile_photo: user?.image || '',
+      name: user?.name || '',
+      username: user?.username || '',
+      bio: user?.bio || '',
     },
   });
 
