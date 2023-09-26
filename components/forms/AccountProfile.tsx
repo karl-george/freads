@@ -146,6 +146,7 @@ function AccountProfile({ user, btnTitle }: AccountProfileProps) {
                   onChange={(e) => handleImage(e, field.onChange)}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -165,6 +166,7 @@ function AccountProfile({ user, btnTitle }: AccountProfileProps) {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -184,6 +186,7 @@ function AccountProfile({ user, btnTitle }: AccountProfileProps) {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -203,6 +206,7 @@ function AccountProfile({ user, btnTitle }: AccountProfileProps) {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
