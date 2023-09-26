@@ -34,6 +34,8 @@ const userSchema = new mongoose.Schema({
   ],
 });
 
+//  First time through models.user wont exist so fallback
+// to mongoose.model
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 export default User;
