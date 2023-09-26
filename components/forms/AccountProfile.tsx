@@ -20,6 +20,8 @@ import Image from 'next/image';
 import { ChangeEvent, useState } from 'react';
 import { isBase64Image } from '@/lib/utils';
 import { useUploadThing } from '@/lib/uploadThing';
+import { updateUser } from '@/lib/actions/user.actions';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface AccountProfileProps {
   user: {
@@ -36,14 +38,16 @@ interface AccountProfileProps {
 function AccountProfile({ user, btnTitle }: AccountProfileProps) {
   const [files, setFiles] = useState<File[]>([]);
   const { startUpload } = useUploadThing('media');
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const form = useForm({
+  const form = useForm<z.infer<typeof userValidation>>({
     resolver: zodResolver(userValidation),
     defaultValues: {
-      profile_photo: user?.image || '',
-      name: user?.name || '',
-      username: user?.username || '',
-      bio: user?.bio || '',
+      profile_photo: user?.image ? user.image : '',
+      name: user?.name ? user.name : '',
+      username: user?.username ? user.username : '',
+      bio: user?.bio ? user.bio : '',
     },
   });
 
@@ -85,7 +89,20 @@ function AccountProfile({ user, btnTitle }: AccountProfileProps) {
       }
     }
 
-    // Update user profile
+    await updateUser({
+      userId: user.id,
+      username: values.username,
+      name: values.name,
+      bio: values.bio,
+      image: values.profile_photo,
+      path: pathname,
+    });
+
+    if (pathname === '/profile/edit') {
+      router.back();
+    } else {
+      router.push('/');
+    }
   }
 
   return (
