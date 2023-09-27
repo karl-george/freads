@@ -4,6 +4,7 @@ import { connectToDB } from '../mongoose';
 import User from '../models/user.model';
 import { revalidatePath } from 'next/cache';
 import Thread from '../models/thread.model';
+import { FilterQuery, SortOrder } from 'mongoose';
 
 interface Params {
   userId: string;
@@ -77,5 +78,56 @@ export async function fetchUserPosts(userId: string) {
     return threads;
   } catch (error: any) {
     throw new Error(`Failed to fetch user posts: ${error.message}`);
+  }
+}
+
+export async function fetchUsers({
+  userId,
+  searchString = '',
+  pageNumber = 1,
+  pageSize = 20,
+  sortBy = 'desc',
+}: {
+  userId: string;
+  searchString: string;
+  pageNumber?: number;
+  pageSize?: number;
+  sortBy?: SortOrder;
+}) {
+  try {
+    connectToDB();
+    // Setup pagination
+    const skipAmount = (pageNumber - 1) * pageSize;
+    // Create regular expression based on search string
+    const regex = new RegExp(searchString, 'i');
+    // Create query that excludes current user id
+    // and searches by username or name
+    const query: FilterQuery<typeof User> = {
+      id: { $ne: userId },
+    };
+    if (searchString.trim() !== '') {
+      query.$or = [
+        { username: { $regex: regex } },
+        { name: { $regex: regex } },
+      ];
+    }
+    // Create a sort object
+    const sortOptions = { createdAt: sortBy };
+    // Create a query using all of the above
+    const usersQuery = User.find(query)
+      .sort(sortOptions)
+      .skip(skipAmount)
+      .limit(pageSize);
+
+    // Calculate number of users for pagination
+    const totalUsersCount = await User.countDocuments(query);
+    // Execute query
+    const users = await usersQuery.exec();
+    // Based on total users figure out if theres a next page
+    const isNext = totalUsersCount > skipAmount + users.length;
+
+    return { users, isNext };
+  } catch (error: any) {
+    throw new Error(`Failed to fetch users: ${error.message}`);
   }
 }
